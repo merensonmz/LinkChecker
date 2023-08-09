@@ -1,0 +1,16 @@
+/* Style for ListView */
+.list-view {
+    -fx-background-color: #E1D7D7; /* Arka plan rengi */
+
+    /* Scrollbar stilleri */
+    -fx-background: #D1C1C1; /* Scrollbar arka plan rengi */
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 4px;
+    -fx-padding: 2px;
+}
+
+/* Style for selected ListView item */
+.list-cell:selected {
+    -fx-background-color: #3E54AC; /* Seçili öğenin arka plan rengi */
+    -fx-text-fill: white; /* Seçili öğenin metin rengi */
+}

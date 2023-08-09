@@ -1,0 +1,27 @@
+// üst çubuğun rengini değiştir
+
+/* Stil sınıfı, tüm boş alanı dolduracak şekilde genişlik ve yüksekliği 100% yapar */
+.fill-width-height {
+    -fx-min-width: 0;
+    -fx-min-height: 0;
+    -fx-pref-width: 100%;
+    -fx-pref-height: 100%;
+}
+
+/* Tüm içeriklerin genişlik ve yükseklik özelliğine stil sınıfını uygulayın */
+/* HBox içerisindeki VBox */
+.vbox-container {
+    -fx-background-color: #F5EBEB;
+}
+
+/* TextField */
+.text-field {
+    -fx-background-color: #E1D7D7;
+    -fx-background-position: 10;
+}
+
+/* Button */
+.button {
+    -fx-background-radius: 100;
+    -fx-background-color: #CDC3C3;
+}

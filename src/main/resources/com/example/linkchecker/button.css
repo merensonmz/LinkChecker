@@ -1,0 +1,43 @@
+/* General styles for all buttons in the application */
+.button {
+    -fx-background-color: #FFFFFF;
+    -fx-background-radius: 50px;
+    -fx-border-color: transparent;
+    -fx-border-radius: 50px;
+    -fx-border-width: 1px;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+    -fx-padding: 8px 16px;
+    -fx-cursor: hand;
+}
+
+/* Custom style for all buttons to add border */
+.button {
+    -fx-border-color: #FFFFFF;
+    -fx-border-width: 2px;
+}
+
+/* Remove focus indication for all buttons */
+.button:focused,
+.button:default:focused {
+    -fx-background-insets: 0, 0;
+    -fx-background-radius: 50px;
+    -fx-border-color: transparent;
+}
+
+/* Custom style for the default button when pressed */
+.button:default:pressed {
+    -fx-background-color: #3E25FA;
+}
+
+/* Custom style for all buttons when hovered */
+.button:hover {
+    -fx-background-color: #7E4BFA; /* Ten renginin koyu tonu */
+    -fx-text-fill: #7E4BFA; /* Ten renginin koyu tonu */
+}
+
+/* Custom style for all buttons when pressed */
+.button:pressed {
+    -fx-padding: 9px 16px;
+}

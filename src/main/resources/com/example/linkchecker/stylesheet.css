@@ -1,0 +1,30 @@
+/* Penceree siyah yap başlık çubuğu rengini istediğiniz renge ayarlayın */
+.root {
+    -fx-background-color: black;
+}
+
+/* Başlık çubuğu metninin rengini beyaz yapmak için */
+.window .title {
+    -fx-text-fill: white;
+}
+
+/* Status bar rengini istediğiniz renge ayarlayın */
+.status-bar .label {
+    -fx-background-color: #FFA500; /* Örnek olarak turuncu renk */
+    -fx-text-fill: white; /* Metin rengi beyaz */
+}
+
+/* Pencere düğmelerinin (kapatma, büyütme, küçültme) rengini istediğiniz renge ayarlayın */
+.button {
+    /* Düğme rengi */
+}
+
+/* Pencere düğmelerinin aktif (hover) durumda rengini istediğiniz renge ayarlayın */
+.button:hover {
+    /* Düğme hover rengi */
+}
+
+/* Pencere düğmelerinin basılı (pressed) durumda rengini istediğiniz renge ayarlayın */
+.button:pressed {
+    /* Düğme basılı rengi */
+}

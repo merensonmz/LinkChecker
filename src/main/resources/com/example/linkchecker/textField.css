@@ -1,0 +1,16 @@
+.text-field {
+    -fx-background-color: #FFFFFF;
+    -fx-background-radius: 10px;
+    -fx-border-color: #ffffff;
+    -fx-border-radius: 10px;
+    -fx-border-width: 1px;
+    -fx-font-size: 14px;
+    -fx-padding: 8px;
+}
+
+
+.text-field:focused {
+    -fx-background-color: #F2F2F2; /* Odaklandığında arka plan rengini değiştir */
+    -fx-border-color: #3E54AC; /* Odaklandığında kenarlık rengini değiştir */
+    -fx-background-insets: 0, 0.5; /* Metin alanı içine bir görsel ipucu ekleyin */
+}
