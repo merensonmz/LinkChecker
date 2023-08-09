@@ -6,10 +6,7 @@ The Link Checker Application is a Java program that allows you to check the vali
 
 - [Features](#features)
 - [Getting Started](#getting-started)
-- [Usage](#usage)
-- [Dependencies](#dependencies)
-- [Contributing](#contributing)
-- [License](#license)
+
 
 ## Features
 
