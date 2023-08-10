@@ -6,7 +6,6 @@ module com.example.linkchecker {
     requires java.desktop;
     requires org.xerial.sqlitejdbc;
 
-
     opens com.example.linkchecker to javafx.fxml;
     exports com.example.linkchecker;
 }

@@ -4,6 +4,7 @@ plugins {
   id 'org.javamodularity.moduleplugin' version '1.8.12'
   id 'org.openjfx.javafxplugin' version '0.0.13'
   id 'org.beryx.jlink' version '2.25.0'
+
 }
 
 group 'com.example'
@@ -17,8 +18,8 @@ ext {
   junitVersion = '5.9.2'
 }
 
-sourceCompatibility = '19'
-targetCompatibility = '19'
+sourceCompatibility = '19.0.1'
+targetCompatibility = '19.0.1'
 
 tasks.withType(JavaCompile) {
   options.encoding = 'UTF-8'
@@ -36,11 +37,13 @@ javafx {
 
 dependencies {
 
+  implementation 'org.testng:testng:7.1.0'
   testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
   implementation group: 'org.jsoup', name: 'jsoup', version: '1.13.1'
   implementation 'org.xerial:sqlite-jdbc:3.36.0'
   implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.11'
+  implementation group: 'org.jsoup', name: 'jsoup', version: '1.13.1'
 }
 
 test {

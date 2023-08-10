@@ -1,4 +1,3 @@
-
 package com.example.linkchecker;
 
 import java.awt.Desktop;
@@ -12,21 +11,21 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
-import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
 import java.io.IOException;
-import java.net.*;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.net.URI;
-
-
+import javafx.fxml.FXML;
+import javafx.scene.control.Button;
+import javafx.scene.control.ListView;
+import javafx.scene.control.TextField;
 
 public class Controller {
     DatabaseConnection databaseConnection = new DatabaseConnection();
@@ -204,15 +203,13 @@ public class Controller {
                 Connection connection = Jsoup.connect(normalizedUrlString);
                 Document document = connection.get();
                 int statusCode = connection.response().statusCode();
-                String statusLink = normalizedUrlString + " (" + statusCode + ")";
-                if (statusCode >= 400) {
-
-                    notOkLinks.add(statusLink);
-                    databaseConnection.insertLinkResult(statusLink, statusCode);
-                } else {
-
-                    okLinks.add(statusLink);
-                    databaseConnection.insertLinkResult(statusLink, statusCode);
+                if (!okLinks.contains(normalizedUrlString) && !notOkLinks.contains(normalizedUrlString)) {
+                    if (statusCode >= 200 && statusCode < 300) {
+                        okLinks.add(normalizedUrlString);
+                    } else {
+                        notOkLinks.add(normalizedUrlString);
+                    }
+                    databaseConnection.insertLinkResult(normalizedUrlString, statusCode);
                 }
 
 
@@ -221,15 +218,14 @@ public class Controller {
                     String innerUrl = link.absUrl("href");
                     if (!innerUrl.isEmpty() && !innerUrl.equals("javascript:void(0)")) {
                         boolean isValidLink = checkLinkValidity(innerUrl);
-                        String innerStatusLink = innerUrl + " (" + (isValidLink ? 200 : 404) + ")";
                         if (isValidLink) {
-                            okLinks.add(innerStatusLink);
+                            okLinks.add(innerUrl);
                         } else {
-                            notOkLinks.add(innerStatusLink);
+                            notOkLinks.add(innerUrl);
                         }
 
                         int innerStatusCode = isValidLink ? 200 : 404;
-                        databaseConnection.insertLinkResult(innerStatusLink, innerStatusCode);
+                        databaseConnection.insertLinkResult(innerUrl, innerStatusCode);
                     }
                 }
             }
@@ -239,14 +235,9 @@ public class Controller {
             notOkLinks.add(statusLink);
             databaseConnection.insertLinkResult(statusLink, 404);
         } catch (IOException e) {
-            String statusLink = url + " (Error: " + e.getMessage() + ")";
-            notOkLinks.add(statusLink);
-            databaseConnection.insertLinkResult(statusLink, 404);
-        } catch (Exception e) {
+            notOkLinks.add(url);
+            databaseConnection.insertLinkResult(url, 404);
 
-            String statusLink = url + " (Unexpected error: " + e.getMessage() + ")";
-            notOkLinks.add(statusLink);
-            databaseConnection.insertLinkResult(statusLink, 404);
         }
     }
 
@@ -258,7 +249,7 @@ public class Controller {
             connection.connect();
             int statusCode = connection.getResponseCode();
             connection.disconnect();
-            return statusCode != 404;
+            return statusCode >= 200 && statusCode < 400; // Consider all 2xx and 3xx codes as valid
         } catch (IOException e) {
             return false;
         }
@@ -274,3 +265,50 @@ public class Controller {
     }
 
 }
+
+
+
+
+  /*  private void send404ErrorEmail(List<String> notOkLinks) {
+        String host = "smtp.gmail.com";
+        int port = 587;
+        String username = "slmcnm273gmail.com";
+        String password = "747800eren";
+        String fromEmail = "slmcnm273gmail.com";
+        String toEmail = "erensonmez27@gmail.com";
+
+        Properties props = new Properties();
+        props.put("mail.smtp.host", host);
+        props.put("mail.smtp.port", port);
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+
+        Session session = Session.getInstance(props, new Authenticator() {
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(username, password);
+            }
+        });
+
+        try {
+            Message message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(fromEmail));
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
+            message.setSubject("404 Error Links");
+
+            StringBuilder messageText = new StringBuilder();
+            messageText.append("List of 404 Error Links:\n\n");
+
+            for (String link : notOkLinks) {
+                messageText.append(link).append("\n");
+            }
+
+            message.setText(messageText.toString());
+
+            Transport.send(message);
+
+            System.out.println("Email sent successfully.");
+        } catch (MessagingException e) {
+            e.printStackTrace();
+        }
+    }
+*/
