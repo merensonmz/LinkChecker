@@ -18,8 +18,8 @@ ext {
   junitVersion = '5.9.2'
 }
 
-sourceCompatibility = '19.0.1'
-targetCompatibility = '19.0.1'
+sourceCompatibility = '18'
+targetCompatibility = '18'
 
 tasks.withType(JavaCompile) {
   options.encoding = 'UTF-8'
@@ -31,7 +31,7 @@ application {
 }
 
 javafx {
-  version = '19.0.2'
+  version = '18'
   modules = ['javafx.controls', 'javafx.fxml']
 }
 
@@ -44,6 +44,7 @@ dependencies {
   implementation 'org.xerial:sqlite-jdbc:3.36.0'
   implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.11'
   implementation group: 'org.jsoup', name: 'jsoup', version: '1.13.1'
+  implementation 'com.sun.mail:javax.mail:1.6.2'
 }
 
 test {
