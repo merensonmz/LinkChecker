@@ -6,6 +6,7 @@
         import javafx.concurrent.Task;
         import javafx.scene.control.ListCell;
         import javafx.scene.input.MouseButton;
+        import javafx.scene.layout.VBox;
         import javafx.scene.paint.Color;
         import org.jsoup.Connection;
         import org.jsoup.Jsoup;
@@ -16,6 +17,8 @@
         import java.net.MalformedURLException;
         import java.net.URI;
         import java.net.URL;
+        import java.time.Duration;
+        import java.time.LocalTime;
         import java.util.ArrayList;
         import java.util.HashSet;
         import java.util.List;
@@ -27,9 +30,13 @@
         import javafx.scene.control.ListView;
         import javafx.scene.control.TextField;
 
-        public class Controller {
-            DatabaseConnection databaseConnection = new DatabaseConnection();
+        import java.util.concurrent.ScheduledExecutorService;
+        import java.util.concurrent.TimeUnit;
 
+        public class Controller {
+            private boolean emailSent = false;
+            ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+            DatabaseConnection databaseConnection = new DatabaseConnection();
             @FXML
             private Button button = new Button();
 
@@ -43,12 +50,23 @@
             private ListView<String> notOkListView = new ListView<>();
 
             private final Set<String> visitedUrls = new HashSet<>();
+            private final Set<String> visitedUrlsInTime = new HashSet<>();
 
             private final List<String> okLinks = new ArrayList<>();
             private final List<String> notOkLinks = new ArrayList<>();
 
+            private final List<String> okLinksInTime = new ArrayList<>();
+
+            private final List<String> notOkLinksInTime = new ArrayList<>();
+
             private final ExecutorService executorService = Executors.newFixedThreadPool(10);
 
+            private void showPopup() {
+                VBox root = new VBox();
+                root.setStyle("-fx-background-color: #E1D7D7;");
+                root.setPrefSize(300, 200);
+
+            }
 
 
             @FXML
@@ -108,6 +126,9 @@
 
                 // Handle clicks on the button
                 button.setOnAction(event -> {
+                    if (textField.getText().isEmpty()) {
+                        return;
+                    }
                     visitedUrls.clear();
                     okListView.getItems().clear();
                     notOkListView.getItems().clear();
@@ -133,11 +154,78 @@
                     }
                 });
 
-
+                startScheduledTask();
             }
 
 
 
+            private long calculateInitialDelay() {
+                long now = System.currentTimeMillis();
+                long targetTime = getTargetTime();
+
+                if (now < targetTime) {
+                    return targetTime - now;
+                } else {
+                    return (24 * 60 * 60 * 1000) - (now - targetTime);
+                }
+            }
+            private long getTargetTime() {
+                LocalTime targetTime = LocalTime.of(10, 49);
+                LocalTime now = LocalTime.now();
+                System.out.println("now: " + now);
+                if (now.isAfter(targetTime)) {
+                    targetTime = targetTime.plusNanos(1); // Move to the same time on the next day
+                }
+
+                long millisUntilTarget = TimeUnit.HOURS.toMillis(targetTime.getHour()) +
+                        TimeUnit.MINUTES.toMillis(targetTime.getMinute()) -
+                        TimeUnit.SECONDS.toMillis(targetTime.getSecond()) -
+                        TimeUnit.MILLISECONDS.toMillis(targetTime.getNano() / 1000000);
+
+                return millisUntilTarget;
+            }
+
+
+            private void runScheduledTask() {
+                LocalTime targetTime = LocalTime.of(10, 49);
+                LocalTime now = LocalTime.now();
+                EmailSender emailSender = new EmailSender();
+
+                if (now.isAfter(targetTime)) {
+                    targetTime = targetTime.plusHours(24); // Move to the same time on the next day
+                }
+
+                long delayMillis = Duration.between(now, targetTime).toMillis();
+
+                scheduler.schedule(() -> {
+                    List<String> urlsInTime = new ArrayList<String>();
+
+
+                    for (String url : urlsInTime) {
+                        System.out.println("Checking links in background thread...");
+                        checkLinkswithTime(url);
+                    }
+
+                    if (!notOkLinksInTime.isEmpty()) {
+                        try {
+                            emailSender.send404ErrorEmail(notOkLinksInTime, "rapor@aryomyazilim.com.tr");
+                            emailSent = true;
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }, delayMillis, TimeUnit.MILLISECONDS);
+            }
+
+
+            private void startScheduledTask() {
+                long initialDelayMillis = calculateInitialDelay();
+
+                if (!emailSent) {
+                    scheduler.scheduleWithFixedDelay(this::runScheduledTask, initialDelayMillis, TimeUnit.DAYS.toMillis(1), TimeUnit.MILLISECONDS);
+                    System.out.println("Scheduled task started.");
+                }
+            }
             //check links in background thread and add them to the listviews in the main thread
             private void checkLinksInBackground(String url) {
                 EmailSender emailSender = new EmailSender();
@@ -154,15 +242,21 @@
                         Platform.runLater(() -> {
                             okListView.getItems().addAll(okLinks);
                             notOkListView.getItems().addAll(notOkLinks);
-                            //send notOkLinks to email
-                            emailSender.send404ErrorEmail(notOkLinks,"mehmet.eren@std.izmirekonomi.edu.tr");
+
+                            if (!notOkLinks.isEmpty()) {
+                                try {
+                                    // Send notOkLinks to email
+                                    emailSender.send404ErrorEmail(notOkLinks, "rapor@aryomyazilim.com.tr");
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
                         });
                     }
                 };
 
                 executorService.submit(task);
             }
-
             //check links and add them to the listviews
             private void openLinkInBrowser(String url) {
                 //if listviews item is not null then open it in the browser.
@@ -197,7 +291,6 @@
                 return normalizedUrlString;
             }
 
-
             //Check links if they are ok or not ok and add them to the listviews and database table
             private void checkLinks(String url) {
                 url = addHttpIfNeeded(url);
@@ -221,7 +314,6 @@
                             databaseConnection.insertLinkResult(normalizedUrlString, statusCode);
                         }
 
-
                         Elements links = document.select("a[href]");
                         for (org.jsoup.nodes.Element link : links) {
                             String innerUrl = link.absUrl("href");
@@ -239,14 +331,53 @@
                         }
                     }
                 } catch (MalformedURLException e) {
-
                     String statusLink = url + " (Invalid URL)";
                     notOkLinks.add(statusLink);
                     databaseConnection.insertLinkResult(statusLink, 404);
                 } catch (IOException e) {
                     notOkLinks.add(url);
                     databaseConnection.insertLinkResult(url, 404);
+                }
+            }
+            private void checkLinkswithTime(String url) {
+                url = addHttpIfNeeded(url);
+                url = normalizeURL(url); //
+                try {
+                    URL normalizedUrl = new URL(url);
+                    String normalizedUrlString = normalizedUrl.toString();
 
+                    if (!visitedUrlsInTime.contains(normalizedUrlString)) {
+                        visitedUrlsInTime.add(normalizedUrlString);
+
+                        Connection connection = Jsoup.connect(normalizedUrlString);
+                        Document document = connection.get();
+                        int statusCode = connection.response().statusCode();
+                        if (!okLinksInTime.contains(normalizedUrlString) && !notOkLinksInTime.contains(normalizedUrlString)) {
+                            if (statusCode >= 200 && statusCode < 300) {
+                                okLinksInTime.add(normalizedUrlString);
+                            } else {
+                                notOkLinksInTime.add(normalizedUrlString);
+                            }
+                        }
+
+                        Elements links = document.select("a[href]");
+                        for (org.jsoup.nodes.Element link : links) {
+                            String innerUrl = link.absUrl("href");
+                            if (!innerUrl.isEmpty() && !innerUrl.equals("javascript:void(0)")) {
+                                boolean isValidLink = checkLinkValidity(innerUrl);
+                                if (isValidLink) {
+                                    okLinksInTime.add(innerUrl);
+                                } else {
+                                    notOkLinksInTime.add(innerUrl);
+                                }
+                            }
+                        }
+                    }
+                } catch (MalformedURLException e) {
+                    String statusLink = url + " (Invalid URL)";
+                    notOkLinksInTime.add(statusLink);
+                } catch (IOException e) {
+                    notOkLinksInTime.add(url);
                 }
             }
 

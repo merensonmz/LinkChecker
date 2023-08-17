@@ -24,7 +24,7 @@ public class DatabaseConnection {
         }
     }
 
-
+    // Create a set of URLs in the database to avoid duplicate URLs in the database
     private void createTable() {
         String sql = """
                 CREATE TABLE IF NOT EXISTS links (
@@ -39,6 +39,7 @@ public class DatabaseConnection {
         } catch (SQLException ignored) {
         }
     }
+    // Get the root URL of a URL to check if the URL is already in the database or not (e.g. https://www.google.com/search?q=java -> https://www.google.com)
     private String getRootUrl(String url) {
         try {
             URI uri = new URI(url);
@@ -71,7 +72,7 @@ public class DatabaseConnection {
         }
     }
 
-
+    // Insert the URL and its status into the database if the URL is not already in the database (based on the root URL) to avoid duplicate URLs in the database
     public void insertLinkResult(String url, int status) {
         String rootUrl = getRootUrl(url);
         if (urlsInDatabase.contains(rootUrl)) {
@@ -91,8 +92,7 @@ public class DatabaseConnection {
             throw new RuntimeException(ignored);
         }
     }
-
-
+    // Load all the URLs from the database into a set to check if a URL is already in the database
     private void loadUrlsFromDatabase() {
         String sql = "SELECT url FROM links";
 

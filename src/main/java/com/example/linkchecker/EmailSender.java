@@ -11,6 +11,7 @@ public class EmailSender {
     private final String password = "noxwqipitdmnzlxo"; // Email password of the sender
     private final String fromEmail = "erensonmez27@gmail.com"; // Email address of the sender
 
+    //@aryomyazilim.com.tr
     // Send email to the user with the list of 404 error links as the message body of the email
     public void send404ErrorEmail(List<String> notOkLinks, String toEmail) {
         Properties props = new Properties();
